@@ -25,7 +25,54 @@ services:
       - broker
     ports:
       - "8007:8000"  # Expose container port 8000 to host port 8000
-
+  order_service_mart:
+    image: order-mart-api
+    build:
+      context: ./order_service_mart
+      dockerfile: Dockerfile
+    volumes:
+      - ./order_service_mart:/code/  # Sync local development directory with the container
+    depends_on:
+      - postgres_order_mart_db
+      - broker
+    ports:
+      - "8003:8000"  # Expose container port 8000 to host port 8000
+  payment_service_mart:
+    image: payment-mart-api
+    build:
+      context: ./payment_service_mart
+      dockerfile: Dockerfile
+    volumes:
+      - ./payment_service_mart:/code/  # Sync local development directory with the container
+    depends_on:
+      - postgres_payment_mart_db
+      - broker
+    ports:
+      - "8005:8000"  # Expose container port 8000 to host port 8000
+  user_service_mart:
+    image: user-mart-api
+    build:
+      context: ./user_service_mart
+      dockerfile: Dockerfile
+    volumes:
+      - ./user_service_mart:/code/  # Sync local development directory with the container
+    depends_on:
+      - postgres_user_mart_db
+      - broker
+    ports:
+      - "8004:8000"  # Expose container port 8000 to host port 8000
+  notification_service_mart:
+    image: notification-mart-api
+    build:
+      context: ./notification_service_mart
+      dockerfile: Dockerfile
+    volumes:
+      - ./notification_service_mart:/code/  # Sync local development directory with the container
+    depends_on:
+      - postgres_notification_mart_db
+      - broker
+    ports:
+      - "8009:8000"  # Expose container port 8000 to host port 8000
   postgres_product_db:
     image: postgres:latest  # Use the official PostgreSQL image
     restart: always
@@ -38,7 +85,6 @@ services:
       - '5433:5432'
     volumes:
       - postgres_product_db:/var/lib/postgresql/data
-
   postgres_inventory_db:
     image: postgres:latest  # Use the official PostgreSQL image
     restart: always
@@ -51,7 +97,54 @@ services:
       - '5434:5432'
     volumes:
       - postgres_inventory_db:/var/lib/postgresql/data
-
+  postgres_order_mart_db:
+    image: postgres:latest  # Use the official PostgreSQL image
+    restart: always
+    container_name: PostgresContOrder
+    environment:
+      - POSTGRES_USER=ziakhan
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=Order_DB
+    ports:
+      - '5435:5432'
+    volumes:
+      - postgres_order_mart_db:/var/lib/postgresql/data
+  postgres_payment_mart_db:
+    image: postgres:latest  # Use the official PostgreSQL image
+    restart: always
+    container_name: PostgresContPayment
+    environment:
+      - POSTGRES_USER=ziakhan
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=Payment_DB
+    ports:
+      - '5436:5432'
+    volumes:
+      - postgres_payment_mart_db:/var/lib/postgresql/data
+  postgres_user_mart_db:
+    image: postgres:latest  # Use the official PostgreSQL image
+    restart: always
+    container_name: PostgresContUser
+    environment:
+      - POSTGRES_USER=ziakhan
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=User_DB
+    ports:
+      - '5437:5432'
+    volumes:
+      - postgres_user_mart_db:/var/lib/postgresql/data
+  postgres_notification_mart_db:
+    image: postgres:latest  # Use the official PostgreSQL image
+    restart: always
+    container_name: PostgresContNotification
+    environment:
+      - POSTGRES_USER=ziakhan
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=Notification_DB
+    ports:
+      - '5438:5432'
+    volumes:
+      - postgres_notification_mart_db:/var/lib/postgresql/data
   broker:
     image: apache/kafka:3.7.0
     hostname: broker
@@ -90,6 +183,14 @@ volumes:
   postgres_product_db:
     driver: local
   postgres_inventory_db:
+    driver: local
+  postgres_order_mart_db:
+    driver: local
+  postgres_payment_mart_db:
+    driver: local
+  postgres_user_mart_db:
+    driver: local
+  postgres_notification_mart_db:
     driver: local
 
 networks:

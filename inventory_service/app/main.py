@@ -1,47 +1,20 @@
 # main.py
 from contextlib import asynccontextmanager
 from typing import Annotated
-from app import settings
 from sqlmodel import Session, SQLModel, select
 from fastapi import FastAPI, Depends, HTTPException
 from typing import AsyncGenerator
-from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+from aiokafka import AIOKafkaProducer
 import asyncio
 import json
 
 
 from app.db import engine
 from app.models.inventory_model import InventoryItem
-from app.crud.inventory_crud import add_new_inventory, get_all_inventorys, get_inventory_by_id, delete_inventory_by_id
+from app.crud.inventory_crud import get_all_inventorys, get_inventory_by_id, delete_inventory_by_id
 from app.dep import get_kafka_producer, get_session
+from app.Consumer.add_stock_consumer import consume_message
 
-
-# async def consume_message(topic, bootstrap_servers):
-# # create a consumer instance
-#     consumer = AIOKafkaConsumer(
-#         topic, 
-#         bootstrap_servers= bootstrap_servers,
-#         group_id = "my-inventory-consumer-group"
-#     )
-#     await consumer.start()
-#     try:
-#         async for message in consumer:
-#             print(f"Received message: {
-#                   message.value.decode()} on topic {message.topic}") 
-#             prod_data = json.loads(message.value.decode())
-#             print("Type", type(prod_data))
-#             print(f"prod_data {prod_data}") 
-
-#             with next(get_session()) as session:
-#                 db_product = add_new_inventory(product_data=InventoryItem(**prod_data), session=session)
-#                 print("db_product", db_product)
-
-
-
-
-#     finally:
-#         # Ensure to close the consumer when done.
-#         await consumer.stop()
 
 
 def create_db_and_tables()->None:
@@ -50,9 +23,10 @@ def create_db_and_tables()->None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    print("Creating tables.......")
-    # task = asyncio.create_task(consume_message(settings.KAFKA_PRODUCT_TOPIC, 'broker:19092'))
+    print("Creating tables......")
+    task = asyncio.create_task(consume_message("inventory-add-stock-response", 'broker:19092'))
     create_db_and_tables()
+    print ("\n\n lifespan started \n\n ")
     yield
 
 
